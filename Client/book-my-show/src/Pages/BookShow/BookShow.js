@@ -9,6 +9,7 @@ function BookShow(){
     const params=useParams();
     const showId=params.showId;
     const [showDetails,setShowDetails]=useState(null);
+    const [selectedSeats,setSelectedSeats]=useState([]);
     const fetchShowData=async ()=>{
         try{
             const response=await getShowDetails(showId);
@@ -20,6 +21,20 @@ function BookShow(){
     useEffect(()=>{
         fetchShowData();
     },[]);
+
+    const handleSeatSelect=(seatNumber)=>{
+        seatNumber = seatNumber.toString();
+
+        if(showDetails.bookedSeats.includes(seatNumber)){
+            return;
+        }
+        if(!selectedSeats.includes(seatNumber)){
+            setSelectedSeats([...selectedSeats, seatNumber]);
+            return;
+        }
+        const updatedSelectedSeats = selectedSeats.filter((seat)=>seat!=seatNumber);
+        setSelectedSeats(updatedSelectedSeats);
+    }
     
     const getSeats = ()=>{
 
@@ -56,13 +71,26 @@ function BookShow(){
                         if(isSeatBooked){
                             seatClass += " seat-btn-booked";
                         }
-                        return <button  key={seatNumber} className={seatClass} >
+                        if(selectedSeats.includes(seatNumber.toString())){
+
+                            seatClass+= " seat-btn-selected";
+                        }
+                        return <button  key={seatNumber} className={seatClass} onClick={()=>handleSeatSelect(seatNumber)} >
                                     {seatNumber}
                                 </button>
                     })
                 }
             </div>
         })}
+        <div className="d-flex bottom-card justify-content-between w-100 max-width-600 mx-auto mb-25px mt-3">
+          <div className="flex-1">
+            Selected Seats: <span>{selectedSeats.join(", ")}</span>
+          </div>
+          <div className="flex-shrink-0 ms-3">
+            Total Price:{" "}
+            <span>Rs. {selectedSeats.length * showDetails.ticketPrice}</span>
+          </div>
+        </div>
     </div>
     }
 
@@ -86,6 +114,9 @@ function BookShow(){
         
         }style={{width:"100%"}}>
             {getSeats()}
+
+
+            <button>Book Tickets</button>
         </Card>
         </Col>
     </Row>
