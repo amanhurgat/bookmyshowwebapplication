@@ -13,6 +13,7 @@ const authRoutes = require("./src/Routes/auth.routes");
 const movieRoutes = require("./src/Routes/movies.routes");
 const theatreRoutes = require("./src/Routes/theatre.routes");
 const showRoutes = require("./src/Routes/show.routes");
+const bookingRoutes=require("./src/Routes/booking.routes")
 require('dotenv').config();
 
 
@@ -37,4 +38,5 @@ authRoutes(app);
 movieRoutes(app);
 theatreRoutes(app);
 showRoutes(app);
+bookingRoutes(app);
 

@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"
 import { getShowDetails } from "../../Calls/shows";
 import {Card, Row, Col, Button, message} from "antd";
-import Navbar from "../../Components/Navbar/Navbar"
+import Navbar from "../../Components/Navbar/Navbar";
+import StripeCheckout from "react-stripe-checkout"
+import { CreateBooking, MakePayment } from "../../Calls/bookings";
 
 function BookShow(){
 
@@ -32,8 +34,40 @@ function BookShow(){
             setSelectedSeats([...selectedSeats, seatNumber]);
             return;
         }
-        const updatedSelectedSeats = selectedSeats.filter((seat)=>seat!=seatNumber);
+        const updatedSelectedSeats = selectedSeats.filter((seat)=>seat!==seatNumber);
         setSelectedSeats(updatedSelectedSeats);
+    }
+    const onToken = async (token)=>{
+
+        console.log(token);
+
+        try{
+            const response = await MakePayment({amount:selectedSeats.length * showDetails.ticketPrice,
+                token:token
+            });
+
+            if(response.data.success){
+                message.success(response.data.message);
+
+
+                const bookingResponse = await CreateBooking({showId:showDetails._id,seats:[...selectedSeats],
+                    transactionId:response.data.data
+                });
+
+                console.log(bookingResponse.data.success)
+                if(bookingResponse.data.success){
+                    window.alert(bookingResponse.data.message);
+                    window.location.href("/");
+                }
+
+            }
+
+        }catch(err){
+
+        }
+
+
+
     }
     
     const getSeats = ()=>{
@@ -64,7 +98,7 @@ function BookShow(){
                         let seatNumber = row*columns + col + 1;
 
                         const isSeatBooked = showDetails.bookedSeats.find((curr)=>{
-                            return curr==seatNumber;
+                            return curr===seatNumber;
                         });
 
                         let seatClass = "seat-btn";
@@ -114,9 +148,15 @@ function BookShow(){
         
         }style={{width:"100%"}}>
             {getSeats()}
+            {
+                selectedSeats.length>0 && 
+                <StripeCheckout 
+                    token={onToken}
+                    stripeKey="pk_test_51Pk5XWKp25HZoc30bcTmozGCabcS6KEKI7isIVopkB8TmzislgHqHIY3fzvxstSTY6bSN6LhQeW3z7oYpkc242Sd008g8PAKBI" />
+
+            }
 
 
-            <button>Book Tickets</button>
         </Card>
         </Col>
     </Row>
